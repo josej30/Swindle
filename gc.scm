@@ -349,7 +349,7 @@
 ;; Fecth object Mode
 (defmethod fetch-object ((mm <managed-memory>) ( s <symbol>))
   (let ((l (pertenece (roots mm) s)))
-    (if (not (negative? l)) l
+    (if (not (negative? l)) (crearLista mm l)
 	(printf "undefyned symbol")
 	)
     )
@@ -381,10 +381,9 @@
   (let ((e (fetch m n)))
     (if (eq? (class-of e) <val>) (value e)
 	(if (is-null? (head e)) '() 
-	    (if (is-null? (tail e)) (crearLista m (points-to (head e)))
-		(cons (crearLista m (points-to (head e))) (crearLista m (points-to (tail e))))		
+	    (if (is-null? (tail e)) (cons (crearLista m (points-to (head e))) '())
+		(cons (crearLista m (points-to (head e))) (crearLista m (points-to (tail e))))
 		)
-	    
 	    )
 	)
     )
