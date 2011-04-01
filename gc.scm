@@ -177,7 +177,7 @@
                                    (set! (freelist mm) (cdr (freelist mm)))
                                    (set! (roots mm) (cons (list nombre dirCons) (roots mm)))
                                    (vector-set! (cells mm) dirVal (make <val> :value head))
-                                   (vector-set! (cells mm) dirCons (make <cons> :head (make <ptr> :points-to dirVal :isnull #f) :tail (make <ptr> :points-to -1 :isnull #t)))
+                                   (vector-set! (cells mm) dirCons (make <cons> :head (make <ptr> :points-to dirVal :is-null #f) :tail (make <ptr> :points-to -1 :is-null #t)))
                                    dirCons
                                    )                    
        ))
@@ -199,8 +199,8 @@
                                    (set! (roots mm) (cons (list nombre dirCons) (roots mm)))
                                    (vector-set! (cells mm) dirVal (make <val> :value head))
                                    (vector-set! (cells mm) dirUltVal (make <val> :value ultHead))
-                                   (vector-set! (cells mm) dirCons (make <cons> :head (make <ptr> :points-to dirVal :isnull #f) :tail (make <ptr> :points-to dirUltCons :isnull #f)))
-                                   (vector-set! (cells mm) dirUltCons (make <cons> :head (make <ptr> :points-to dirUltVal :isnull #f) :tail (make <ptr> :points-to -1 :isnull #t)))
+                                   (vector-set! (cells mm) dirCons (make <cons> :head (make <ptr> :points-to dirVal :is-null #f) :tail (make <ptr> :points-to dirUltCons :is-null #f)))
+                                   (vector-set! (cells mm) dirUltCons (make <cons> :head (make <ptr> :points-to dirUltVal :is-null #f) :tail (make <ptr> :points-to -1 :is-null #t)))
                                    dirCons
                                    )              
        ))
@@ -227,7 +227,7 @@
                                       (let (
                                             (pos3 (storeList mm nombre valor 'cuerpo))
                                             )
-                                        (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :isnull #f) :tail (make <ptr> :points-to pos3 :isnull #f)))
+                                        (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :is-null #f) :tail (make <ptr> :points-to pos3 :is-null #f)))
                                         )
                                       pos1
                                       )
@@ -243,11 +243,11 @@
                                          (set! (freelist mm) (cdr (freelist mm)))
                                          (set! (freelist mm) (cdr (freelist mm)))
                                          (set! (freelist mm) (cdr (freelist mm)))
-                                         (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :isnull #f) :tail (make <ptr> :points-to dirultApuntador :isnull #f)))
+                                         (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :is-null #f) :tail (make <ptr> :points-to dirultApuntador :is-null #f)))
                                          ;;(printf "Guardo el penul apuntador en ~a\n" pos1)
                                          (vector-set! (cells mm) pos2 (make <val> :value head))
                                          ;;(printf "Guardo ~a en ~a\n" head pos2)
-                                         (vector-set! (cells mm) dirultApuntador (make <cons> :head (make <ptr> :points-to dirUltValor :isnull #f) :tail (make <ptr> :points-to -1 :isnull #t)))
+                                         (vector-set! (cells mm) dirultApuntador (make <cons> :head (make <ptr> :points-to dirUltValor :is-null #f) :tail (make <ptr> :points-to -1 :is-null #t)))
                                          (vector-set! (cells mm) dirUltValor (make <val> :value ultValor))
                                          ;;(printf "Guardo ~a en ~a\n" ultValor dirUltValor)
                                          pos1
@@ -264,7 +264,7 @@
                           (let (
                                 (pos3 (storeList mm nombre valor 'cuerpo))
                                 )
-                            (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :isnull #f) :tail (make <ptr> :points-to pos3 :isnull #f)))
+                            (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :is-null #f) :tail (make <ptr> :points-to pos3 :is-null #f)))
                             )
                           pos1
                           )
@@ -284,6 +284,11 @@
      (else #t)
      )
   )
+
+;; corrida lezi
+;; (define m (cons-manejador-memoria 100))
+;; (store-object! m 'x '(1 2 foo 3))
+;; (is-null? (head (fetch m 0)))
 
 ;; (define m (cons-memoria 10))
 ;; (fetch m 4)
