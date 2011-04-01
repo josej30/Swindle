@@ -53,7 +53,8 @@
   (points-to :type <number>
              :accessor points-to
              :initarg :points-to
-             :documentation "Direccion de memoria a la que referencia el apuntador"
+             :documentation "Direccion de memoria a la que 
+                             referencia el apuntador"
              )
   (is-null :type <boolean> 
            :accessor is-null?
@@ -69,31 +70,41 @@
   (car :type <ptr>
        :accessor head
        :initarg :head
-       :documentation "Alo"
+       :documentation "Apuntador a la cabeza del cons"
        )
   (cdr :type <ptr>
        :accessor tail
        :initarg :tail
-       :documentation "Alo"
+       :documentation "Apuntador a la cola del cons"
        )
   )
 
 
 ;;;;;;;;;;;;;;;; Metodos de memoria ;;;;;;;;;;;;;;;;;;;;;
 
-;; Constructor de memoria
+;;
+;; Método cons-memoria
+;; 
+;; Recibe un entero n y devuelve una memoria de tamaño n
 (defmethod cons-memoria ((n <number>))
   (if (< n 1)
       (printf "memory must have at least one cell")
       (make <memory> :cells (make-vector n (cons-cell))))
   )
 
-;; Tamaño de la memoria
+;;
+;; Método size
+;; 
+;; Recibe una memoria y devuelve el tamaño de la misma
 (defmethod size ((mem <memory>))
   (vector-length (cells mem))
   )
 
-;; Fetch del n-esimo elemento de la memoria
+;;
+;; Método fetch
+;; 
+;; Recibe una memoria mem y un numero n. Devuelve el elemento
+;; almacenado en la n-ésima posición de la memoria mem.
 (defmethod fetch ((mem <memory>) (n <number>))
   (if (or (< n 0) (>= n (size mem)))
       (printf "bus error -- core dumped")
@@ -101,7 +112,12 @@
       )
   )
 
-;; Cambia el n-esimo valor de la memoria por x
+;;
+;; Método store!
+;; 
+;; Recibe una memoria mem, un numero n y una celda x. 
+;; Devuelve la memoria mem con la celda x almacenada en 
+;; la posición n de la misma
 (defmethod store! ((mem <memory>) (n <number>) (x <cell>))
   (if (or (< n 0) (>= n (size mem)))
       (printf "bus error -- core dumped")
@@ -109,34 +125,55 @@
       )
   )
 
+
 ;;;;;;;;;;;;;;;; Metodos de cell ;;;;;;;;;;;;;;;;;;;;;
 
-;; Mutator de Crap
+;;
+;; Método crap!
+;; 
+;; Recibe una celda c y un booleando b.
+;; Devuelve la celda con el slot crap cambiado con el valor b
 (defmethod crap! ((c <cell>) (b <boolean>))
   (set! (crap? c) b)
   )
 
-;; Constructor de cell
+;;
+;; Método cons-cell!
+;; 
+;; Constructor de celdas. No recibe parámetros y devuelve una
+;; celda nueva.
 (defmethod cons-cell ()
   (make <cell>)
   )
 
 
-;;;;;;;;;;;;;;;; Metodos de valor ;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;; Metodos del manejador de memoria ;;;;;;;;;;;;;;;;;;
 
-
-;;;;;;;;;;;;;;;; Metodos del manejador de memoria ;;;;;;;;;;;;;;;;;;;;;
-
-;; Constructor de memoria
+;;
+;; Método cons-manejador-memoria
+;; 
+;; Constructor de un manejador de memoria. Recibe un número n y devuelve
+;; un manejador de memoria con una memoria de tamaño n.
 (defmethod cons-manejador-memoria ((n <number>))
   (if (< n 1)
       (printf "memory must have at least one cell")
-      (make <managed-memory> :cells (make-vector n (cons-cell)) :freelist (build-list n values) :roots (list) )
+      (make <managed-memory> :cells (make-vector n (cons-cell)) 
+            :freelist (build-list n values) :roots (list) )
       )
   )
 
-;; (define m (cons-manejador-memoria 100)) (store-object! m 'foo '(1 2 3 4 5 6))
-
+;;
+;; Método store-object!
+;; 
+;; Recibe un manejador de memoria, un símbolo (nombre) y un valor.
+;; Devuelve el manejador de memoria modificado con el valor. Esto es:
+;;
+;; 1) Modificar el slot "roots" del manejador de memoria para identificar
+;; la posición donde se está guardando el objeto.
+;; 2) Modificar el slot "freelist" para reflejar el nuevo estado de las
+;; celdas que se encuentran libres en la memoria.
+;; 3) Modificar el slot "cells" de la memoria para almacenar las celdas que
+;; hagan falta para representar el nuevo objeto.
 (defmethod store-object! ((mm <managed-memory>) (nombre <symbol>) (valor))
   ( cond 
      ((checkSize mm (medir valor)) 
@@ -158,7 +195,12 @@
       )
   )
 
-;; Para guardar valores
+;;
+;; Método storeVal
+;; 
+;; Recibe un manejador de memoria, un símbolo (nombre) y un valor.
+;; Devuelve el manejador de memoria modificado con el valor. Esta
+;; función es específica para cuando el argumento "valor" NO es una lista.
 (defmethod storeVal ((mm <managed-memory>) (nombre <symbol>) (valor))
   (let ((pos (car (freelist mm))))
     (begin
@@ -170,8 +212,17 @@
     )
   )
 
-;; Para guardar listas
-(defmethod storeList ((mm <managed-memory>) (nombre <symbol>) (valor) (id <symbol>))
+;;
+;; Método storeList
+;; 
+;; Recibe un manejador de memoria, un símbolo (nombre) y un valor.
+;; Devuelve el manejador de memoria modificado con el valor. Esta
+;; función es específica para cuando el argumento "valor" es una lista.
+;; Por lo tanto es una función recursiva que se va llamando a sí misma
+;; hasta que termina de almacenar correctamente todos los elementos 
+;; necesarios de la lista.
+(defmethod storeList ((mm <managed-memory>) (nombre <symbol>) (valor) 
+                                            (id <symbol>))
      
   ( cond
      
@@ -283,43 +334,29 @@
      )
   )
 
-
-(defmethod checkSize ((mm <managed-memory>) (n <number>)) 
+;;
+;; Método checkSize
+;; 
+;; Recibe un manejador de memoria mm y un numero n. Retorna
+;; #t si hay n cantidad de memoria disponible en el manejador
+;; y #f en caso contrario.
+(defmethod checkSize ((mm <managed-memory>) (n <number>))
   ( cond
      ((< (length (freelist mm) ) n ) #f)
      (else #t)
      )
   )
 
-;; corrida lezi
-;; (define m (cons-manejador-memoria 100))
-;; (store-object! m 'x '(1 2 foo 3))
-;; (is-null? (head (fetch m 0)))
-
-;; (define m (cons-memoria 10))
-;; (fetch m 4)
-;; (store! m 5 90)
-;; (define c (cons-cell))
-;; (crap! c true)
-;; (define m (cons-manejador-memoria 100)) (store-object! m 'foo '(1 2 3 4 5 6))
-;; (define m (cons-manejador-memoria 100)) (store-object! m 'foo '(1 2 foo))
-;; (define m (cons-manejador-memoria 100)) (store-object! m 'foo '(1 2))
-;; (define m (cons-manejador-memoria 10)) (store-object! m 'foo 'bar)
-;; (checkSize m 6)
-;; (points-to (head (vector-ref (cells m) 4)))
-
-
-;; Lo que pegue yo! por si acaso da error! :)
-
-
+;;
 ;; Mutator de is-null
-;; Se encarga de asignar un nuevo valor b, a la propiedad is-null a p
+;; Se encarga de asignar un nuevo valor b, a la propiedad is-null de p
 (defmethod is-null! ((p <ptr>) (b <boolean>))
   (set! (is-null? p) b)
   )
 
+;;
 ;; Metodo medir
-;; Se encarga de verificar el tama�o de una lista, para ver si la lista 
+;; Se encarga de verificar el tamaño de una lista, para ver si la lista 
 ;; ingreseada cabe en la memoria o no
 (defmethod medir ((x <list>))
   (if (null? x) 
@@ -331,9 +368,10 @@
       )
   )
 
+;;
 ;; Fecth object
-;; Se encarga de mostrar al elemento s, si esta definido en mm, en caso de que 
-;; no este definido s en mm muestra el mensaje de 'undefyned symbol'
+;; Se encarga de mostrar al elemento s, si está definido en mm, en caso de que 
+;; no esté definido s en mm muestra el mensaje de 'undefyned symbol'
 (defmethod fetch-object ((mm <managed-memory>) ( s <symbol>))
   (let ((l (pertenece (roots mm) s)))
     (if (not (negative? l)) (crearLista mm l)
@@ -342,6 +380,7 @@
     )
   )
 
+;;
 ;; Forget object
 ;; Se elimina al elemento s de la lista de memoria de definiciones de mm
 (defmethod forget-object! ((mm <managed-memory>) ( s <symbol>))
@@ -352,6 +391,7 @@
     )
   )
 
+;;
 ;; delete (Aux de delete)
 ;; Se encarga de eliminar al elemento s de la lista l
 (defmethod delete ((l <list>) (s <symbol>))
@@ -362,10 +402,11 @@
       )
   )
 
-;; Pertence (Aux de Fetch y de Forget)
-;; Se encarga de verificar si el elmento s, se encuentra en la lista s
-;; en caso de estar s, se muestra la primera direccion del mismo
-;; en caso de q no este, devuelve -1
+;;
+;; pertenece (Aux de Fetch y de Forget)
+;; Se encarga de verificar si el elemento s, se encuentra en la lista s
+;; en caso de estar s, se muestra la primera dirección del mismo
+;; en caso de que no esté, devuelve -1
 (defmethod pertenece ((l <list>) (s <symbol>))
   (if (null? l) -1
       (if (eq? (car (car l)) s) (car (cdr (car l)))
@@ -374,10 +415,11 @@
       )
   )
 
+;;
 ;; crearLista (Aux de Fetch)
-;; se encarga de recorrer toda la memoria m desde la direccion inicial n,
-;; y asi crear el valor de el simbolo almacenado en n, a pesar de ser una
-;; lista, valor o simbolos 
+;; Se encarga de recorrer toda la memoria m desde la dirección inicial n,
+;; y así crear el valor del símbolo almacenado en n, a pesar de ser una
+;; lista, valor o símbolos 
 (defmethod crearLista ((m <memory>) (n <number>))  
   (let ((e (fetch m n)))
     (if (eq? (class-of e) <val>) (value e)
