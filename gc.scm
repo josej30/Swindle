@@ -47,6 +47,39 @@
    )
   )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Clase Pointer
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defclass <ptr> ()
+  (points-to :type <number>
+             :accessor points-to
+             :initarg :points-to
+             :documentation "Direccion de memoria a la que referencia el apuntador"
+             )
+  (is-null :type <boolean> 
+           :accessor is-null?
+           :initarg :is-null
+           :documentation "Informa si el apuntador es nulo o no"
+           )
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Clase cons-cell
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defclass <cons> (<cell>)
+  (car :type <ptr>
+       :accessor head
+       :initarg :head
+       :documentation "Alo"
+       )
+  (cdr :type <ptr>
+       :accessor tail
+       :initarg :tail
+       :documentation "Alo"
+       )
+  )
+
+
 ;;;;;;;;;;;;;;;; Metodos de memoria ;;;;;;;;;;;;;;;;;;;;;
 
 ;; Constructor de memoria
@@ -107,7 +140,7 @@
   ( cond 
       ((checkSize mm 1) 
        ( cond 
-          ((list? valor) (storeList mm nombre valor))
+          ((list? valor) (storeList mm nombre valor 'cabeza))
           (else (storeVal mm nombre valor))
           )
        )
@@ -123,22 +156,33 @@
     (begin
      (set! (roots mm) (cons (list nombre pos) (roots mm)))
      (set! (freelist mm) (cdr (freelist mm)))
+     (vector-set! (cells mm) pos valor)
      pos
      )
     )
   )
 
 ;; Para guardar listas
-(defmethod storeList ((mm <managed-memory>) (nombre <symbol>) (valor))
+(defmethod storeList ((mm <managed-memory>) (nombre <symbol>) (valor) (id <symbol>))
   (let (
         (pos (car (freelist mm)))
         (head (car valor))
+        (ap (make <ptr> :points-to 0 :isnull #t))
         )
-    (begin
-     (set! (roots mm) (cons (list nombre pos) (roots mm)))
-     (set! (freelist mm) (cdr (freelist mm)))
-     pos
-     )
+      ( cond 
+         ((eq? id 'cabeza) ( begin 
+                              (set! (roots mm) (cons (list nombre pos) (roots mm)))
+                              (set! (freelist mm) (cdr (freelist mm)))
+                              pos
+                              (storeList mm nombre valor 'cuerpo)
+                              )
+                           )
+         (else ( begin 
+                  (set! (freelist mm) (cdr (freelist mm)))
+;;                  (storeList mm nombre valor 'cuerpo)
+                  )
+               )
+         )
     )
   )
 
@@ -161,20 +205,6 @@
 
 ;; Lo que pegue yo! por si acaso da error! :)
 
-;; Clase Pointer
-(defclass <ptr> ()
-  (points-to :type <number>
-             :accessor points-to
-             :initarg :points-to
-             :documentation "Direccion de memoria a la que referencia el apuntador"
-             )
-  (is-null :type <boolean> 
-           :accessor is-null?
-           :initarg :is-null
-           :documentation "Informa si el apuntador es nulo o no"
-           )
-  )
-
 ;; Mutator de is-null
 (defmethod is-null! ((p <ptr>) (b <boolean>))
   (set! (is-null? p) b)
@@ -188,20 +218,6 @@
 	  (+ 1 (+ (medir (car x)) (medir (cdr x))))
 	  )
       )
-  )
-
-;; Clase Cons-Cell
-(defclass <cons> (<cell>)
-  (car :type <ptr>
-       :accessor head
-       :initarg :head
-       :documentation "Alo"
-       )
-  (cdr :type <ptr>
-       :accessor tail
-       :initarg :tail
-       :documentation "Alo"
-       )
   )
 
 ;;;;;;;;;;;;;; Prueba de Lezy  ;;;;;;;;;;;;;;;;;;;;
