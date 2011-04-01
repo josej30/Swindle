@@ -135,17 +135,26 @@
       )
   )
 
+;; (define m (cons-manejador-memoria 100)) (store-object! m 'foo '(1 2 3 4 5 6))
+
 (defmethod store-object! ((mm <managed-memory>) (nombre <symbol>) (valor))
   ( cond 
-      ((checkSize mm 1) 
-       ( cond 
-          ((list? valor) (storeList mm nombre valor 'cabeza))
-          (else (storeVal mm nombre valor))
-          )
-       )
-      ( else 
+     ((checkSize mm (medir valor)) 
+      ( cond 
+         
+         ((list? valor) (let 
+                            ((dir (storeList mm nombre valor 'cabeza)))
+                          ( begin
+                             (set! (roots mm) (cons (list nombre dir) (roots mm)))
+                             dir
+                             )
+                          ))
+         (else (storeVal mm nombre valor))
+         )
+      )
+      (else 
         (printf "No hay memoria")
-       )
+        )
       )
   )
 
@@ -175,7 +184,6 @@
                                 ( begin
                                    (set! (freelist mm) (cdr (freelist mm)))
                                    (set! (freelist mm) (cdr (freelist mm)))
-                                   (set! (roots mm) (cons (list nombre dirCons) (roots mm)))
                                    (vector-set! (cells mm) dirVal (make <val> :value head))
                                    (vector-set! (cells mm) dirCons (make <cons> :head (make <ptr> :points-to dirVal :is-null #f) :tail (make <ptr> :points-to -1 :is-null #t)))
                                    dirCons
@@ -196,7 +204,6 @@
                                    (set! (freelist mm) (cdr (freelist mm)))
                                    (set! (freelist mm) (cdr (freelist mm)))
                                    (set! (freelist mm) (cdr (freelist mm)))
-                                   (set! (roots mm) (cons (list nombre dirCons) (roots mm)))
                                    (vector-set! (cells mm) dirVal (make <val> :value head))
                                    (vector-set! (cells mm) dirUltVal (make <val> :value ultHead))
                                    (vector-set! (cells mm) dirCons (make <cons> :head (make <ptr> :points-to dirVal :is-null #f) :tail (make <ptr> :points-to dirUltCons :is-null #f)))
@@ -221,7 +228,6 @@
                                           (pos2 (car (freelist mm)))
                                           )
                                       (set! (freelist mm) (cdr (freelist mm)))
-                                      (set! (roots mm) (cons (list nombre pos1) (roots mm)))
                                       (vector-set! (cells mm) pos2 (make <val> :value head))
                                       ;;(printf "Guardo ~a en ~a\n" head pos2)
                                       (let (
