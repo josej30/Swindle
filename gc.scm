@@ -165,24 +165,69 @@
 ;; Para guardar listas
 (defmethod storeList ((mm <managed-memory>) (nombre <symbol>) (valor) (id <symbol>))
   (let (
-        (pos (car (freelist mm)))
+        (pos1 (car (freelist mm)))
         (head (car valor))
-        (ap (make <ptr> :points-to 0 :isnull #t))
+        (valor (cdr valor))
         )
-      ( cond 
-         ((eq? id 'cabeza) ( begin 
-                              (set! (roots mm) (cons (list nombre pos) (roots mm)))
-                              (set! (freelist mm) (cdr (freelist mm)))
-                              pos
-                              (storeList mm nombre valor 'cuerpo)
-                              )
+    ( begin 
+       (set! (freelist mm) (cdr (freelist mm)))
+       ( cond 
+          ((eq? id 'cabeza) ( begin 
+                               (let (
+                                     (pos2 (car (freelist mm)))
+                                     )
+                                 (set! (freelist mm) (cdr (freelist mm)))
+                                 (set! (roots mm) (cons (list nombre pos1) (roots mm)))
+                                 (vector-set! (cells mm) pos2 head)
+                                 ;;(printf "Guardo ~a en ~a\n" head pos2)
+                                 (let (
+                                       (pos3 (storeList mm nombre valor 'cuerpo))
+                                       )
+                                   (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :isnull #f) :tail (make <ptr> :points-to pos3 :isnull #f)))
+                                   )
+                                 pos1
+                                 )
+                               )
+                            )
+          ((null? (cdr valor)) ( begin 
+                                        (let (
+                                              (pos2 (car (freelist mm)))
+                                              (ultValor (car valor))
+                                              (dirultApuntador (car (cdr (cdr (freelist mm)))))
+                                              (dirUltValor (car (cdr (freelist mm))))
+                                              )
+                                          (set! (freelist mm) (cdr (freelist mm)))
+                                          (set! (freelist mm) (cdr (freelist mm)))
+                                          (set! (freelist mm) (cdr (freelist mm)))
+                                          (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :isnull #f) :tail (make <ptr> :points-to dirultApuntador :isnull #f)))
+                                          ;;(printf "Guardo el penul apuntador en ~a\n" pos1)
+                                          (vector-set! (cells mm) pos2 head)
+                                          ;;(printf "Guardo ~a en ~a\n" head pos2)
+                                          (vector-set! (cells mm) dirultApuntador (make <cons> :head (make <ptr> :points-to ultValor :isnull #f) :tail (make <ptr> :points-to -1 :isnull #t)))
+                                          (vector-set! (cells mm) dirUltValor ultValor)
+                                          ;;(printf "Guardo ~a en ~a\n" ultValor dirUltValor)
+                                          pos1
+                                          )
+                                        )
+                                     )
+          (else ( begin 
+                   (let (
+                         (pos2 (car (freelist mm)))
+                         )
+                     (set! (freelist mm) (cdr (freelist mm)))
+                     (vector-set! (cells mm) pos2 head)
+                     ;;(printf "Guardo ~a en ~a\n" head pos2)
+                     (let (
+                           (pos3 (storeList mm nombre valor 'cuerpo))
                            )
-         (else ( begin 
-                  (set! (freelist mm) (cdr (freelist mm)))
-;;                  (storeList mm nombre valor 'cuerpo)
-                  )
-               )
-         )
+                       (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :isnull #f) :tail (make <ptr> :points-to pos3 :isnull #f)))
+                       )
+                     pos1
+                     )
+                   )
+                )
+          )
+       )
     )
   )
 
@@ -198,9 +243,10 @@
 ;; (store! m 5 90)
 ;; (define c (cons-cell))
 ;; (crap! c true)
-;; (define m (cons-manejador-memoria 10)) (store-object! m 'foo '(1 2 3))
+;; (define m (cons-manejador-memoria 100)) (store-object! m 'foo '(1 2 3 4 5 6))
 ;; (define m (cons-manejador-memoria 10)) (store-object! m 'foo 'bar)
 ;; (checkSize m 6)
+;; (points-to (head (vector-ref (cells m) 4)))
 
 
 ;; Lo que pegue yo! por si acaso da error! :)
