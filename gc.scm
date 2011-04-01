@@ -176,23 +176,30 @@
 ;; hagan falta para representar el nuevo objeto.
 (defmethod store-object! ((mm <managed-memory>) (nombre <symbol>) (valor))
   ( cond 
-     ((checkSize mm (medir valor)) 
-      ( cond 
-         
-         ((list? valor) (let 
-                            ((dir (storeList mm nombre valor 'cabeza)))
-                          ( begin
-                             (set! (roots mm) (cons (list nombre dir) (roots mm)))
-                             dir
-                             )
-                          ))
-         (else (storeVal mm nombre valor))
-         )
-      )
-      (else 
-        (printf "No hay memoria")
-        )
-      )
+     ((list? valor) (begin
+                      (cond ((checkSize mm (medir valor))
+                            (let 
+                                ((dir (storeList mm nombre valor 'cabeza)))
+                              ( begin
+                                 (set! (roots mm) (cons (list nombre dir) (roots mm)))
+                                 dir
+                                 )
+                              ))
+                      (else
+                       (printf "No hay memoria")
+                       )
+                      )
+                    ))
+     
+     (else (begin 
+             (cond ((checkSize mm 1) (storeVal mm nombre valor))
+                   (else
+                    (printf "No hay memoria")
+                    )
+                   )
+             )
+           )
+     )
   )
 
 ;;
