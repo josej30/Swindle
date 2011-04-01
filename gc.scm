@@ -330,3 +330,62 @@
 ;; (define y (make <ptr> :points-to '3 :is-null #f))
 ;; (define c (make <cons> :car x :cdr y))
 ;; (define x (cons-memoria 5))
+
+;; Mutator de is-null
+(defmethod is-null! ((p <ptr>) (b <boolean>))
+  (set! (is-null? p) b)
+  )
+
+(defmethod medir ((x <list>))
+  (if (null? x) 
+      0
+      (if (or (symbol? (car x)) (number? (car x)))
+	  (+ 2 (medir (cdr x)))
+	  (+ 1 (+ (medir (car x)) (medir (cdr x))))
+	  )
+      )
+  )
+
+;; Fecth object Mode
+(defmethod fetch-object ((mm <managed-memory>) ( s <symbol>))
+  (let ((l (pertenece (roots mm) s)))
+    (if (not (negative? l)) l
+	(printf "undefyned symbol")
+	)
+    )
+  )
+
+(defmethod pertenece ((l <list>) (s <symbol>))
+  (if (null? l) -1
+      (if (eq? (car (car l)) s) (car (cdr (car l)))
+	  (pertenece (cdr l) s)
+	  )
+      )
+  )
+
+(defmethod is-null! ((p <ptr>) (b <boolean>))
+  (set! (is-null? p) b)
+  )
+
+(defmethod medir ((x <list>))
+  (if (null? x) 
+      0
+      (if (or (symbol? (car x)) (number? (car x)))
+	  (+ 2 (medir (cdr x)))
+	  (+ 1 (+ (medir (car x)) (medir (cdr x))))
+	  )
+      )
+  )
+
+(defmethod crearLista ((m <memory>) (n <number>))  
+  (let ((e (fetch m n)))
+    (if (eq? (class-of e) <val>) (value e)
+	(if (is-null? (head e)) '() 
+	    (if (is-null? (tail e)) (crearLista m (points-to (head e)))
+		(cons (crearLista m (points-to (head e))) (crearLista m (points-to (tail e))))		
+		)
+	    
+	    )
+	)
+    )
+  )
