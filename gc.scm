@@ -24,8 +24,7 @@
 ;; Clase valor
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defclass <val> (<cell>)
-  (value :type <symbol>
-         :accessor value
+  (value :accessor value
          :initarg :value
          :documentation "El valor de una celda"
          )
@@ -177,7 +176,7 @@
                                    (set! (freelist mm) (cdr (freelist mm)))
                                    (set! (freelist mm) (cdr (freelist mm)))
                                    (set! (roots mm) (cons (list nombre dirCons) (roots mm)))
-                                   (vector-set! (cells mm) dirVal head)
+                                   (vector-set! (cells mm) dirVal (make <val> :value head))
                                    (vector-set! (cells mm) dirCons (make <cons> :head (make <ptr> :points-to dirVal :isnull #f) :tail (make <ptr> :points-to -1 :isnull #t)))
                                    dirCons
                                    )                    
@@ -198,8 +197,8 @@
                                    (set! (freelist mm) (cdr (freelist mm)))
                                    (set! (freelist mm) (cdr (freelist mm)))
                                    (set! (roots mm) (cons (list nombre dirCons) (roots mm)))
-                                   (vector-set! (cells mm) dirVal head)
-                                   (vector-set! (cells mm) dirUltVal ultHead)
+                                   (vector-set! (cells mm) dirVal (make <val> :value head))
+                                   (vector-set! (cells mm) dirUltVal (make <val> :value ultHead))
                                    (vector-set! (cells mm) dirCons (make <cons> :head (make <ptr> :points-to dirVal :isnull #f) :tail (make <ptr> :points-to dirUltCons :isnull #f)))
                                    (vector-set! (cells mm) dirUltCons (make <cons> :head (make <ptr> :points-to dirUltVal :isnull #f) :tail (make <ptr> :points-to -1 :isnull #t)))
                                    dirCons
@@ -223,7 +222,7 @@
                                           )
                                       (set! (freelist mm) (cdr (freelist mm)))
                                       (set! (roots mm) (cons (list nombre pos1) (roots mm)))
-                                      (vector-set! (cells mm) pos2 head)
+                                      (vector-set! (cells mm) pos2 (make <val> :value head))
                                       ;;(printf "Guardo ~a en ~a\n" head pos2)
                                       (let (
                                             (pos3 (storeList mm nombre valor 'cuerpo))
@@ -246,10 +245,10 @@
                                          (set! (freelist mm) (cdr (freelist mm)))
                                          (vector-set! (cells mm) pos1 (make <cons> :head (make <ptr> :points-to pos2 :isnull #f) :tail (make <ptr> :points-to dirultApuntador :isnull #f)))
                                          ;;(printf "Guardo el penul apuntador en ~a\n" pos1)
-                                         (vector-set! (cells mm) pos2 head)
+                                         (vector-set! (cells mm) pos2 (make <val> :value head))
                                          ;;(printf "Guardo ~a en ~a\n" head pos2)
                                          (vector-set! (cells mm) dirultApuntador (make <cons> :head (make <ptr> :points-to dirUltValor :isnull #f) :tail (make <ptr> :points-to -1 :isnull #t)))
-                                         (vector-set! (cells mm) dirUltValor ultValor)
+                                         (vector-set! (cells mm) dirUltValor (make <val> :value ultValor))
                                          ;;(printf "Guardo ~a en ~a\n" ultValor dirUltValor)
                                          pos1
                                          )
@@ -260,7 +259,7 @@
                               (pos2 (car (freelist mm)))
                               )
                           (set! (freelist mm) (cdr (freelist mm)))
-                          (vector-set! (cells mm) pos2 head)
+                          (vector-set! (cells mm) pos2 (make <val> :value head))
                           ;;(printf "Guardo ~a en ~a\n" head pos2)
                           (let (
                                 (pos3 (storeList mm nombre valor 'cuerpo))
