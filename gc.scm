@@ -157,3 +157,60 @@
 ;; (define m (cons-manejador-memoria 10)) (store-object! m 'foo '(1 2 3))
 ;; (define m (cons-manejador-memoria 10)) (store-object! m 'foo 'bar)
 ;; (checkSize m 6)
+
+
+;; Lo que pegue yo! por si acaso da error! :)
+
+;; Clase Pointer
+(defclass <ptr> ()
+  (points-to :type <number>
+             :accessor points-to
+             :initarg :points-to
+             :documentation "Direccion de memoria a la que referencia el apuntador"
+             )
+  (is-null :type <boolean> 
+           :accessor is-null?
+           :initarg :is-null
+           :documentation "Informa si el apuntador es nulo o no"
+           )
+  )
+
+;; Mutator de is-null
+(defmethod is-null! ((p <ptr>) (b <boolean>))
+  (set! (is-null? p) b)
+  )
+
+(defmethod medir ((x <list>))
+  (if (null? x) 
+      0
+      (if (or (symbol? (car x)) (number? (car x)))
+	  (+ 2 (medir (cdr x)))
+	  (+ 1 (+ (medir (car x)) (medir (cdr x))))
+	  )
+      )
+  )
+
+;; Clase Cons-Cell
+(defclass <cons> (<cell>)
+  (car :type <ptr>
+       :accessor head
+       :initarg :head
+       :documentation "Alo"
+       )
+  (cdr :type <ptr>
+       :accessor tail
+       :initarg :tail
+       :documentation "Alo"
+       )
+  )
+
+;;;;;;;;;;;;;; Prueba de Lezy  ;;;;;;;;;;;;;;;;;;;;
+;; define x (make <ptr> :point 
+
+;;;;;;;;;;;;;; Lista de Vaina q quiere Striko ;;;;;;;;;;;
+;; (define x (make <ptr> :points-to '5 :is-null #f))
+;; (define y (make <ptr> :points-to '4 :is-null #f))
+;; (define x (make <ptr> :points-to '5 :is-null #f))
+;; (define y (make <ptr> :points-to '3 :is-null #f))
+;; (define c (make <cons> :car x :cdr y))
+;; (define x (cons-memoria 5))
