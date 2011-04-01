@@ -331,9 +331,36 @@
 ;; (define c (make <cons> :car x :cdr y))
 ;; (define x (cons-memoria 5))
 
+
 ;; Mutator de is-null
 (defmethod is-null! ((p <ptr>) (b <boolean>))
   (set! (is-null? p) b)
+  )
+
+;; Fecth object Mode
+(defmethod fetch-object ((mm <managed-memory>) ( s <symbol>))
+  (let ((l (pertenece (roots mm) s)))
+    (if (not (negative? l)) (crearLista mm l)
+	(printf "undefyned symbol")
+	)
+    )
+  )
+
+;; Forget
+(defmethod forget-object! ((mm <managed-memory>) ( s <symbol>))
+  (let ((l (pertenece (roots mm) s)))
+    (if (not (negative? l)) (delete (roots mm) s)
+	(printf "undefyned symbol")
+	)
+    )
+  )
+
+(defmethod delete ((l <list>) (s <symbol>))
+  (if (null? l) '()
+      (if (eq? (car (car (roots m))) s) (delete (cdr  l) s)
+	  (cons (car (car l)) (delete (cdr l) s))
+	  )
+      )
   )
 
 (defmethod medir ((x <list>))
@@ -344,15 +371,6 @@
 	  (+ 1 (+ (medir (car x)) (medir (cdr x))))
 	  )
       )
-  )
-
-;; Fecth object Mode
-(defmethod fetch-object ((mm <managed-memory>) ( s <symbol>))
-  (let ((l (pertenece (roots mm) s)))
-    (if (not (negative? l)) (crearLista mm l)
-	(printf "undefyned symbol")
-	)
-    )
   )
 
 (defmethod pertenece ((l <list>) (s <symbol>))
@@ -388,3 +406,4 @@
 	)
     )
   )
+
