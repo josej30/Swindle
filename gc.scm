@@ -311,11 +311,16 @@
 
 ;; Lo que pegue yo! por si acaso da error! :)
 
+
 ;; Mutator de is-null
+;; Se encarga de asignar un nuevo valor b, a la propiedad is-null a p
 (defmethod is-null! ((p <ptr>) (b <boolean>))
   (set! (is-null? p) b)
   )
 
+;; Metodo medir
+;; Se encarga de verificar el tamaño de una lista, para ver si la lista 
+;; ingreseada cabe en la memoria o no
 (defmethod medir ((x <list>))
   (if (null? x) 
       0
@@ -326,24 +331,9 @@
       )
   )
 
-;;;;;;;;;;;;;; Prueba de Lezy  ;;;;;;;;;;;;;;;;;;;;
-;; define x (make <ptr> :point 
-
-;;;;;;;;;;;;;; Lista de Vaina q quiere Striko ;;;;;;;;;;;
-;; (define x (make <ptr> :points-to '5 :is-null #f))
-;; (define y (make <ptr> :points-to '4 :is-null #f))
-;; (define x (make <ptr> :points-to '5 :is-null #f))
-;; (define y (make <ptr> :points-to '3 :is-null #f))
-;; (define c (make <cons> :car x :cdr y))
-;; (define x (cons-memoria 5))
-
-
-;; Mutator de is-null
-(defmethod is-null! ((p <ptr>) (b <boolean>))
-  (set! (is-null? p) b)
-  )
-
-;; Fecth object Mode
+;; Fecth object
+;; Se encarga de mostrar al elemento s, si esta definido en mm, en caso de que 
+;; no este definido s en mm muestra el mensaje de 'undefyned symbol'
 (defmethod fetch-object ((mm <managed-memory>) ( s <symbol>))
   (let ((l (pertenece (roots mm) s)))
     (if (not (negative? l)) (crearLista mm l)
@@ -352,7 +342,8 @@
     )
   )
 
-;; Forget
+;; Forget object
+;; Se elimina al elemento s de la lista de memoria de definiciones de mm
 (defmethod forget-object! ((mm <managed-memory>) ( s <symbol>))
   (let ((l (pertenece (roots mm) s)))
     (if (not (negative? l)) (delete (roots mm) s)
@@ -361,6 +352,8 @@
     )
   )
 
+;; delete (Aux de delete)
+;; Se encarga de eliminar al elemento s de la lista l
 (defmethod delete ((l <list>) (s <symbol>))
   (if (null? l) '()
       (if (eq? (car (car (roots m))) s) (delete (cdr  l) s)
@@ -369,16 +362,10 @@
       )
   )
 
-(defmethod medir ((x <list>))
-  (if (null? x) 
-      0
-      (if (or (symbol? (car x)) (number? (car x)))
-	  (+ 2 (medir (cdr x)))
-	  (+ 1 (+ (medir (car x)) (medir (cdr x))))
-	  )
-      )
-  )
-
+;; Pertence (Aux de Fetch y de Forget)
+;; Se encarga de verificar si el elmento s, se encuentra en la lista s
+;; en caso de estar s, se muestra la primera direccion del mismo
+;; en caso de q no este, devuelve -1
 (defmethod pertenece ((l <list>) (s <symbol>))
   (if (null? l) -1
       (if (eq? (car (car l)) s) (car (cdr (car l)))
@@ -387,20 +374,10 @@
       )
   )
 
-(defmethod is-null! ((p <ptr>) (b <boolean>))
-  (set! (is-null? p) b)
-  )
-
-(defmethod medir ((x <list>))
-  (if (null? x) 
-      0
-      (if (or (symbol? (car x)) (number? (car x)))
-	  (+ 2 (medir (cdr x)))
-	  (+ 1 (+ (medir (car x)) (medir (cdr x))))
-	  )
-      )
-  )
-
+;; crearLista (Aux de Fetch)
+;; se encarga de recorrer toda la memoria m desde la direccion inicial n,
+;; y asi crear el valor de el simbolo almacenado en n, a pesar de ser una
+;; lista, valor o simbolos 
 (defmethod crearLista ((m <memory>) (n <number>))  
   (let ((e (fetch m n)))
     (if (eq? (class-of e) <val>) (value e)
